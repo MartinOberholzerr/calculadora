@@ -19,7 +19,7 @@ body {
   left: 50%;
   transform: translate(-50%, -50%);
   width: 270px;
-  height: 480px;
+  height: 580px;
   background-color: rgb(45, 45, 45);
   border-radius: 15px;
 }
@@ -37,7 +37,7 @@ body {
   justify-content: flex-end;
   align-items: flex-end;
   width: 100%;
-  height: 87px;
+  height: 187px;
   color: #fff;
   font-size: 3.15rem;
   padding: 10px;

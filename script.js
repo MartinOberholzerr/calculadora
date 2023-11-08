@@ -1,4 +1,5 @@
 $(function () {
+  // Declaración de variables para el estado y valores numéricos
   var OperatorStatus = false;
   var OperatorEqualStage = false;
   var NumberValue_first = 0;
@@ -7,63 +8,43 @@ $(function () {
   var Operators = "";
   var PointLength_first = 0;
   var PointLength_secend = 0;
-  var PointLengthMax = Math.max(PointLength_first, PointLength_secend);
+  var FullExpression = ""; // Variable para almacenar la expresión completa
 
+  // Función para actualizar la pantalla con la expresión completa
+  function updateScreen() {
+    if (FullExpression === "") {
+      $(".ScreenTotal").text("0");
+    } else {
+      $(".ScreenTotal").text(FullExpression);
+    }
+  }
+
+  // Iniciacion de la pantalla con el valor 0
   $(".ScreenTotal").text("0");
 
+  // Manejo de los botones numéricos
   $(".Number-btn").click(function () {
     if (OperatorEqualStage) {
       OperatorEqualStage = false;
       $(".ScreenTotal").text("");
+      FullExpression = "";
     }
-    if ($(this).text() !== "0") {
+    if ($(this).text() !== "0" || FullExpression !== "") {
       $(".AC").text("C");
     }
 
-    if ($(this).text() === ".") {
-      if ($(".ScreenTotal").text() === "0") {
-        $(".ScreenTotal").html(0 + ".");
-      } else if (ScreenTotal.indexOf(".") != -1) {
-        return;
-      }
+    if (Operators === "") {
+      NumberValue_first += $(this).text();
+      FullExpression += $(this).text();
+    } else {
+      NumberValue_secend += $(this).text();
+      FullExpression += $(this).text();
     }
 
-    if (OperatorStatus) {
-      NumberValue_secend = $(this).text();
-      if ($(".ScreenTotal").text().length === 0 || $(".ScreenTotal").text() === "0") {
-        ScreenTotal = NumberValue_secend;
-        $(".ScreenTotal").text(ScreenTotal);
-      } else {
-        ScreenTotal = ScreenTotal + NumberValue_secend;
-        $(".ScreenTotal").text(ScreenTotal);
-        NumberValue_secend = ScreenTotal;
-      }
-      $(".Operator-btn").removeClass("click");
-    } else {
-      NumberValue_first = $(this).text();
-      if ($(".ScreenTotal").text().length === 0 || $(".ScreenTotal").text() === "0") {
-        ScreenTotal = NumberValue_first;
-        $(".ScreenTotal").text(ScreenTotal);
-      } else {
-        ScreenTotal = ScreenTotal + NumberValue_first;
-        $(".ScreenTotal").text(ScreenTotal);
-        NumberValue_first = ScreenTotal;
-      }
-    }
+    updateScreen();
   });
 
-  $(".Percentage").click(function () {
-    $(".Operator-btn").removeClass("click");
-    if (Math.round(ScreenTotal) === Number(ScreenTotal)) {
-      ScreenTotal *= 0.01;
-    } else {
-      PointLength_first = ScreenTotal.toString().split(".")[1].length;
-      ScreenTotal = (Number(ScreenTotal).toString().replace(".", "") * 1) / Math.pow(10, PointLength_first + 2);
-    }
-    NumberValue_first = ScreenTotal;
-    $(".ScreenTotal").text(ScreenTotal);
-  });
-
+  // Manejo del botón "AC" (borrar todo)
   $(".AC").click(function () {
     $(".Operator-btn").removeClass("click");
     $(this).text("AC");
@@ -74,87 +55,72 @@ $(function () {
     Operators = "";
     PointLength_first = 0;
     PointLength_secend = 0;
-    PointLength = Math.max(PointLength_first, PointLength_secend);
-    $(".ScreenTotal").text(ScreenTotal);
+    FullExpression = "";
+    updateScreen();
   });
 
+  // Manejo del botón "+/-" (cambiar signo)
   $(".PlusMinus").click(function () {
-    $(".Operator-btn").removeClass("click");
-    ScreenTotal *= -1;
-    NumberValue_first = ScreenTotal;
-    $(".ScreenTotal").text(ScreenTotal);
+    if (FullExpression !== "") {
+      FullExpression = "(-" + FullExpression + ")";
+      NumberValue_first = Number(NumberValue_first) * -1;
+      updateScreen();
+    }
   });
 
+  // Manejo de los botones de operadores (+, -, *, /)
   $(".Operator-btn").click(function () {
     Operators = $(this).text();
     $(".Operator-btn").removeClass("click");
     $(this).addClass("click");
-    NumberValue_first = parseFloat(ScreenTotal);
-    OperatorEqualStage = true;
     OperatorStatus = true;
-    ScreenTotal = "";
+    FullExpression += " " + Operators + " ";
+    updateScreen();
   });
 
+  // Manejo de los botones de paréntesis
+  $(".Parenthesis-btn").click(function () {
+    var Parenthesis = $(this).text();
+    if (Parenthesis === "(") {
+      FullExpression += Parenthesis;
+    } else if (Parenthesis === ")") {
+      FullExpression += " " + NumberValue_secend + Parenthesis;
+    }
+    updateScreen();
+  });
+
+  // Manejo del botón "=" (calcular resultado)
   $(".equal").click(function () {
-    NumberValue_secend = parseFloat(NumberValue_secend);
-    OperatorEqualStage = true;
     if (Operators === "^") {
       // Potenciación
-      ScreenTotal = Math.pow(NumberValue_first, NumberValue_secend);
+      ScreenTotal = Math.pow(Number(NumberValue_first), Number(NumberValue_secend));
+      FullExpression = NumberValue_first + " ^ " + NumberValue_secend + " = " + ScreenTotal;
     } else if (Operators === "√") {
       // Raíz cuadrada
-      ScreenTotal = Math.sqrt(NumberValue_first);
+      ScreenTotal = Math.sqrt(Number(NumberValue_first));
+      FullExpression = "√(" + NumberValue_first + ") = " + ScreenTotal;
     } else {
-      switch (Operators) {
-        case "+":
-          PointLength_first = NumberValue_first.toFixed(10).toString().split(".")[1].length;
-          PointLength_secend = NumberValue_secend.toFixed(10).toString().split(".")[1].length;
-          PointLengthMax = Math.max(PointLength_first, PointLength_secend);
-          ScreenTotal = Math.round(
-            (NumberValue_first * Math.pow(10, PointLengthMax) + NumberValue_secend * Math.pow(10, PointLengthMax)) /
-              Math.pow(10, PointLengthMax)
-          );
-          OperatorStatus = false;
-          NumberValue_first = ScreenTotal;
-          break;
-        case "-":
-          PointLength_first = NumberValue_first.toFixed(10).toString().split(".")[1].length;
-          PointLength_secend = NumberValue_secend.toFixed(10).toString().split(".")[1].length;
-          PointLengthMax = Math.max(PointLength_first, PointLength_secend);
-          ScreenTotal = Math.round(
-            (NumberValue_first * Math.pow(10, PointLengthMax) - NumberValue_secend * Math.pow(10, PointLengthMax)) /
-              Math.pow(10, PointLengthMax)
-          );
-          OperatorStatus = false;
-          NumberValue_first = ScreenTotal;
-          break;
-        case "×":
-          if (Math.round(NumberValue_first) !== NumberValue_first && Math.round(NumberValue_secend) !== NumberValue_secend) {
-            PointLength_first = NumberValue_first.toString().split(".")[1].length;
-            PointLength_secend = NumberValue_secend.toString().split(".")[1].length;
-            ScreenTotal = (Number(NumberValue_first).toString().replace(".", "") * Number(NumberValue_secend).toString().replace(".", "")) / Math.pow(10, PointLength_first + PointLength_secend);
-          } else if (Math.round(NumberValue_first) === NumberValue_first && Math.round(NumberValue_secend) !== NumberValue_secend) {
-            PointLength_secend = NumberValue_secend.toString().split(".")[1].length;
-            ScreenTotal = (NumberValue_first * Number(NumberValue_secend).toString().replace(".", "")) / Math.pow(10, PointLength_secend);
-          } else if (Math.round(NumberValue_first) !== NumberValue_first && Math.round(NumberValue_secend) === NumberValue_secend) {
-            PointLength_first = NumberValue_first.toString().split(".")[1].length;
-            ScreenTotal = (Number(NumberValue_first).toString().replace(".", "") * NumberValue_secend) / Math.pow(10, PointLength_first);
-          } else {
-            ScreenTotal = Number(NumberValue_first * NumberValue_secend);
-          }
-          OperatorStatus = false;
-          NumberValue_first = ScreenTotal;
-          break;
-        case "÷":
-          PointLength_first = (Math.round(Number(NumberValue_first).toString().replace(".", "") / NumberValue_first) + "").length;
-          PointLength_secend = (Math.round(Number(NumberValue_secend).toString().replace(".", "") / NumberValue_secend) + "").length;
-          ScreenTotal = Number((Number(NumberValue_first).toString().replace(".", "")) / Number(Number(NumberValue_secend).toString().replace(".", ""))) * Math.pow(10, PointLength_secend - PointLength_first);
-          OperatorStatus = false;
-          NumberValue_first = ScreenTotal;
-          break;
+      // Las operaciones +, -, *, y / deben manejarse aca.
+      NumberValue_first = Number(NumberValue_first);
+      NumberValue_secend = Number(NumberValue_secend);
+      if (Operators === "+") {
+        ScreenTotal = NumberValue_first + NumberValue_secend;
+      } else if (Operators === "-") {
+        ScreenTotal = NumberValue_first - NumberValue_secend;
+      } else if (Operators === "×") {
+        ScreenTotal = NumberValue_first * NumberValue_secend;
+      } else if (Operators === "÷") {
+        if (NumberValue_secend === 0) {
+          FullExpression = "Error: Division by zero";
+          updateScreen();
+          return;
+        }
+        ScreenTotal = NumberValue_first / NumberValue_secend;
       }
+      FullExpression = NumberValue_first + " " + Operators + " " + NumberValue_secend + " = " + ScreenTotal;
     }
 
-    $(".ScreenTotal").text(ScreenTotal);
+    updateScreen();
+    OperatorEqualStage = true;
   });
 });
